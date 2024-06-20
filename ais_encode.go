@@ -2,6 +2,9 @@ package main
 
 import (
 	"github.com/taruti/bstream"
+
+	"fmt"
+	"time"
 )
 
 // see http://catb.org/gpsd/AIVDM.html
@@ -94,6 +97,13 @@ func (nmeaFormatter) FormatVesselMetadata(l *vesselMetadata) ([]byte, error) {
 	bs = nmeaAppendChecksumFrom(offset, bs)
 	debugf("NMEA: %s", bs)
 	return bs, nil
+}
+
+func (nmeaFormatter) FormatTime(t time.Time) []byte {
+	// FIXME
+	bs := []byte(fmt.Sprintf("\\c:%d*00\\!ZCZDA,*00\n", t.Unix()))
+	debugf("NMEA: %s", bs)
+	return bs
 }
 
 var encoderChars = [64]byte{

@@ -6,6 +6,7 @@ import (
 	"log"
 	"net"
 	"os"
+	"time"
 )
 
 var proto = flag.String("proto", "udp", "Protocol to use for sending NMEA e.g. udp, tcp, udp4, tcp6.")
@@ -15,6 +16,7 @@ var verbose = flag.Bool("v", false, "Be more verbose")
 var outFormat = flag.String("format", "nmea", "Output format {nmea,csv}")
 var serverURL = flag.String("url", "wss://meri.digitraffic.fi:443/mqtt", "Server to use")
 var csvToGpx = flag.Bool("csvtogpx", false, "Convert CSV output produced by this program from stdin to a gpx file to stdout.")
+var timestamp = flag.Bool("time", false, "Emit timestamps into output stream")
 
 func openOutput() (io.WriteCloser, error) {
 	if *useStdout {
@@ -39,6 +41,7 @@ func debug(vs ...interface{}) {
 type outFormatter interface {
 	FormatVesselLocation(*vesselLocation) ([]byte, error)
 	FormatVesselMetadata(*vesselMetadata) ([]byte, error)
+	FormatTime(time.Time) []byte
 }
 
 func getFormatter() outFormatter {

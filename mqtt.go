@@ -7,6 +7,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/eclipse/paho.mqtt.golang"
 )
@@ -31,7 +32,26 @@ func (c *cc) onMessageReceived(client mqtt.Client, message mqtt.Message) {
 	}
 }
 
+var nextTimeStamp time.Time
+
+func (c *cc) writeTimeStampIfNeeded() error {
+	if !*timestamp {
+		return nil
+	}
+	t := time.Now()
+	if !t.After(nextTimeStamp) {
+		return nil
+	}
+	_, err := c.c.Write(c.fmt.FormatTime(t))
+	nextTimeStamp = t.Add(time.Second)
+	return err
+}
+
 func (c *cc) writeCombo(bs []byte, err error) error {
+	if err != nil {
+		return err
+	}
+	err = c.writeTimeStampIfNeeded()
 	if err != nil {
 		return err
 	}
