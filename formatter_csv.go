@@ -8,7 +8,7 @@ import (
 type csvFormatter struct{}
 
 func (csvFormatter) FormatVesselLocation(l *vesselLocation) ([]byte, error) {
-	return []byte(fmt.Sprintf("%d,%d,%f,%f\n", l.TimestampExternal, l.MMSI, l.Lat(), l.Lon())), nil
+	return []byte(fmt.Sprintf("%d,%d,%f,%f\n", l.Timestamp, l.MMSI, l.Lat, l.Lon)), nil
 }
 
 func (csvFormatter) FormatVesselMetadata(l *vesselMetadata) ([]byte, error) {

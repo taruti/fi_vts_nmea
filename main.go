@@ -13,7 +13,7 @@ var addr = flag.String("address", "127.0.0.1:10110", "Address to send NMEA data.
 var useStdout = flag.Bool("stdout", false, "Send NMEA data to stdout instead of network.")
 var verbose = flag.Bool("v", false, "Be more verbose")
 var outFormat = flag.String("format", "nmea", "Output format {nmea,csv}")
-var serverName = flag.String("server", "meri-test.digitraffic.fi", "Server to use")
+var serverURL = flag.String("url", "wss://meri.digitraffic.fi:443/mqtt", "Server to use")
 var csvToGpx = flag.Bool("csvtogpx", false, "Convert CSV output produced by this program from stdin to a gpx file to stdout.")
 
 func openOutput() (io.WriteCloser, error) {

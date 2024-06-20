@@ -9,29 +9,41 @@ import (
 type MMSI uint32
 
 type vesselLocation struct {
-	MMSI             MMSI     `json:"MMSI"`
-	Type             string   `json:"type"`
-	Geometry         geometry `json:"geometry"`
-	vesselProperties `json:"properties"`
+	MMSI      MMSI `json:"MMSI"`
+	Timestamp int  `json:"time"`
+	///	Type             string   `json:"type"`
+	Geometry geometry `json:"geometry"`
+	//	vesselProperties `json:"properties"`
+	Sog     float64 `json:"sog"`
+	Cog     float64 `json:"cog"`
+	NavStat int     `json:"navStat"`
+	Rot     int     `json:"rot"`
+	PosAcc  bool    `json:"posAcc"`
+	Raim    bool    `json:"raim"`
+	Heading int     `json:"heading"`
+	Lat     float64 `json:"lat"`
+	Lon     float64 `json:"lon"`
 }
 
-func (v *vesselLocation) Lat() float64 {
-	return v.Geometry.Coordinates[1]
+/*
+"vessels-v2/230010760/location"
+Message: {
+  "time" : 1686936661,
+  "sog" : 7.4,
+  "cog" : 290.6,
+  "navStat" : 0,
+  "rot" : 0,
+  "posAcc" : false,
+  "raim" : false,
+  "heading" : 286,
+  "lon" : 28.460167,
+  "lat" : 62.101388
 }
-func (v *vesselLocation) Lon() float64 {
-	return v.Geometry.Coordinates[0]
-}
+*/
 
 type vesselProperties struct {
-	Sog               float64 `json:"sog"`
-	Cog               float64 `json:"cog"`
-	NavStat           int     `json:"navStat"`
-	Rot               int     `json:"rot"`
-	PosAcc            bool    `json:"posAcc"`
-	Raim              bool    `json:"raim"`
-	Heading           int     `json:"heading"`
-	Timestamp         int     `json:"timestamp"`
-	TimestampExternal int64   `json:"timestampExternal"`
+	Timestamp         int   `json:"timestamp"`
+	TimestampExternal int64 `json:"timestampExternal"`
 }
 type geometry struct {
 	Type        string    `json:"type"`

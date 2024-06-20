@@ -5,6 +5,7 @@ import (
 	"io"
 	"log"
 	"os"
+	"strconv"
 	"strings"
 
 	"github.com/eclipse/paho.mqtt.golang"
@@ -13,7 +14,7 @@ import (
 const mqttUser = `digitraffic`
 const mqttPass = `digitrafficPassword`
 
-const mqttTopic = `vessels/#`
+const mqttTopic = `vessels-v2/#`
 
 type mqttHandler = func(mqtt.Client, mqtt.Message)
 
@@ -38,19 +39,19 @@ func (c *cc) writeCombo(bs []byte, err error) error {
 	return err
 }
 
-func (c *cc) parseTopic(topic string) (string, error) {
-	if topic == `vessels/status` {
-		return `status`, nil
+func (c *cc) parseTopic(topic string) (string, string, error) {
+	if topic == `vessels-v2/status` {
+		return `status`, ``, nil
 	}
 	ss := strings.Split(topic, `/`)
-	if len(ss) != 3 || ss[0] != `vessels` {
-		return "", fmt.Errorf("invalid topic provided")
+	if len(ss) != 3 || ss[0] != `vessels-v2` {
+		return "", "", fmt.Errorf("invalid topic provided")
 	}
 	switch t := ss[2]; t {
-	case `metadata`, `locations`:
-		return t, nil
+	case `metadata`, `location`:
+		return t, ss[1], nil
 	}
-	return "", fmt.Errorf("invalid topic type")
+	return "", "", fmt.Errorf("invalid topic type")
 }
 
 func (c *cc) onMessage(client mqtt.Client, message mqtt.Message) error {
@@ -58,7 +59,7 @@ func (c *cc) onMessage(client mqtt.Client, message mqtt.Message) error {
 	bs := message.Payload()
 
 	debugf("Received message on topic: %q\nMessage: %s\n", topic, bs)
-	t, err := c.parseTopic(topic)
+	t, id, err := c.parseTopic(topic)
 	if err != nil {
 		return fmt.Errorf("fatal MQTT topic: %q %q: %w", topic, bs, err)
 	}
@@ -69,17 +70,27 @@ func (c *cc) onMessage(client mqtt.Client, message mqtt.Message) error {
 		if err != nil {
 			return fmt.Errorf("fatal MQTT metadata: %q %q: %w", topic, bs, err)
 		}
+		mmsi, err := strconv.ParseUint(id, 10, 32)
+		if err != nil {
+			return fmt.Errorf("fatal MQTT mmsi: %q", id)
+		}
+		vmsg.MMSI = MMSI(mmsi)
 		debugf("Decoded into: %#v", vmsg)
 		err = c.writeCombo(c.fmt.FormatVesselMetadata(&vmsg))
 		if err != nil {
 			return err
 		}
-	case `locations`:
+	case `location`:
 		var vmsg vesselLocation
 		err := parseVesselLocation(bs, &vmsg)
 		if err != nil {
 			return fmt.Errorf("fatal MQTT locations: %q %q: %w", topic, bs, err)
 		}
+		mmsi, err := strconv.ParseUint(id, 10, 32)
+		if err != nil {
+			return fmt.Errorf("fatal MQTT mmsi: %q", id)
+		}
+		vmsg.MMSI = MMSI(mmsi)
 		debugf("Decoded into: %#v", vmsg)
 		err = c.writeCombo(c.fmt.FormatVesselLocation(&vmsg))
 		if err != nil {
@@ -102,7 +113,7 @@ func dialMqtt(messageCallback mqttHandler) error {
 	}
 	mqtt.ERROR = log.New(os.Stderr, "", 0)
 	opt := mqtt.NewClientOptions()
-	url := `wss://` + *serverName + `:61619/mqtt`
+	url := *serverURL
 	debugf("Using mqtt url %q", url)
 	opt.SetAutoReconnect(true).AddBroker(url).
 		SetUsername(mqttUser).SetPassword(mqttPass).SetCleanSession(true)
