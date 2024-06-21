@@ -101,7 +101,7 @@ func (nmeaFormatter) FormatVesselMetadata(l *vesselMetadata) ([]byte, error) {
 
 func (nmeaFormatter) FormatTime(t time.Time) []byte {
 	// FIXME
-	bs := []byte(fmt.Sprintf("\\c:%d*00\\!ZCZDA,*00\n", t.Unix()))
+	bs := []byte(fmt.Sprintf("\\c:%d*00\\$ZCRTE,1,1,c,0*00\n", t.Unix()))
 	debugf("NMEA: %s", bs)
 	return bs
 }
